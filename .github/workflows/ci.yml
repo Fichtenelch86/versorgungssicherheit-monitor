@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["vibe/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Syntax-Check
+        run: python3 -m py_compile eum/*.py run_eu.py
+
+      - name: Offline-Test (Store, Stats, Charts, Dashboard)
+        run: python3 tests/test_eum_offline.py
+
+      - name: Live-Smoke-Test Eurostat (nur letzte Werte)
+        timeout-minutes: 5
+        run: python3 run_eu.py --once --nur-aktuell --db /tmp/eu_ci.sqlite3
